@@ -1,55 +1,13 @@
-import mongoose, {Schema} from "mongoose";
-import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
+import mongoose, {isValidObjectId} from "mongoose"
+import {Video} from "../models/video.model.js"
+import {User} from "../models/user.model.js"
+import {ApiError} from "../utils/ApiError.js"
+import {ApiResponse} from "../utils/ApiResponse.js"
+import {asyncHandler} from "../utils/asyncHandler.js"
+import {uploadOnCloudinary} from "../utils/cloudinary.js"
 
-const videoSchema = new Schema(
-    {
-        videoFile: {
-            type: String, //cloudinary url
-            required: true
-        },
-        thumbnail: {
-            type: String, //cloudinary url
-            required: true
-        },
-        title: {
-            type: String, 
-            required: true
-        },
-        description: {
-            type: String, 
-            required: true
-        },
-        duration: {
-            type: Number, 
-            required: true
-        },
-        views: {
-            type: Number,
-            default: 0
-        },
-        isPublished: {
-            type: Boolean,
-            default: true
-        },
-        owner: {
-            type: Schema.Types.ObjectId,
-            ref: "User"
-        }
-
-    }, 
-    {
-        timestamps: true
-    }
-)
-
-videoSchema.plugin(mongooseAggregatePaginate);
-
-export const Video = mongoose.model("Video", videoSchema)
-
-
-
-
- const {page = 1, limit = 10,  query, sortBy, sortType, userId } = req.query;
+const getAllVideos = asyncHandler(async (req, res) => {
+    const {page = 1, limit = 10,  query, sortBy, sortType, userId } = req.query;
     
     const pageNum = Math.max(parseInt(req.query.page) || 1, 1);
     const limitNum = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 100);
@@ -140,3 +98,10 @@ export const Video = mongoose.model("Video", videoSchema)
         }, "Videos fetched successfully")
     );
 });
+
+const publishAVideo = asyncHandler(async (req, res) => {
+    const { title, description} = req.body
+    // TODO: get video, upload to cloudinary, create video
+})
+
+export { getAllVideos }
