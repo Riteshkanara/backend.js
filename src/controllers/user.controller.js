@@ -28,22 +28,6 @@ const generateAccessAndRefreshTokens = async(userId) => {
 
 const registerUser = asyncHandler( async (req, res) => {
 
-    // console.log("--- DEBUG START ---");
-    // console.log("BODY DATA:", req.body);
-    // console.log("FILES DATA:", req.files);
-    // console.log("--- DEBUG END ---");
-
-    // get user details from frontend
-    // validation - not empty
-    // check if user already exists: username, email
-    // check for images, check for avatar
-    // upload them to cloudinary, avatar
-    // create user object - create entry in db
-    // remove password and refresh token field from response
-    // check for user creation
-    // return res
-
-
     const {fullName, email, username, password } = req.body
 
     if (
@@ -59,39 +43,45 @@ const registerUser = asyncHandler( async (req, res) => {
     if (existedUser) {
         throw new ApiError(409, "User with email or username already exists")
     }
-    //console.log(req.files);
 
-    // Use double optional chaining to prevent crashing
-    const avatarLocalPath = req.files?.avatar[0]?.path;
-    // const coverImageLocalPath = req.files?.coverImage[0]?.path;
-
-    let coverImageLocalPath ;
+    // ✅ STEP 1: Check if files exist
+    console.log("🔍 req.files:", req.files)
+    
+    const avatarLocalPath = req.files?.avatar?.[0]?.path;  // ← Added optional chaining
+    
+    let coverImageLocalPath;
     if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
         coverImageLocalPath = req.files.coverImage[0].path;
     }
     
+    // ✅ STEP 2: Check paths
+    console.log("📁 Avatar path:", avatarLocalPath)
+    console.log("📁 Cover path:", coverImageLocalPath)
 
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar file is required");
-
     }
 
-    // In your registerUser function, before uploading:
-console.log("🔍 ENV Check:");
-console.log("Cloud Name:", process.env.CLOUDINARY_CLOUD_NAME);
-console.log("API Key:", process.env.CLOUDINARY_API_KEY);
-console.log("API Secret exists:", !!process.env.CLOUDINARY_API_SECRET);
-console.log("CLOUDINARY_URL exists:", !!process.env.CLOUDINARY_URL);
+    // ✅ STEP 3: Check environment variables
+    console.log("🔍 ENV Check:");
+    console.log("Cloud Name:", process.env.CLOUDINARY_CLOUD_NAME);
+    console.log("API Key:", process.env.CLOUDINARY_API_KEY);
+    console.log("API Secret exists:", !!process.env.CLOUDINARY_API_SECRET);
 
+    // ✅ STEP 4: Try uploading
+    console.log("⏳ Starting upload...")
     const avatar = await uploadOnCloudinary(avatarLocalPath)
+    console.log("📤 Avatar upload result:", avatar)  // ← THIS IS KEY!
+    
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+    console.log("📤 Cover upload result:", coverImage)
 
-
+    // ✅ STEP 5: Check if upload was successful
     if (!avatar) {
-        throw new ApiError(400, "Avatar upload faileddd");
+        throw new ApiError(400, "Avatar upload failed - uploadOnCloudinary returned null");
     }
 
-    // 6. Create User
+    // Create User
     const user = await User.create({
         fullName,
         avatar: avatar.url,
@@ -101,14 +91,12 @@ console.log("CLOUDINARY_URL exists:", !!process.env.CLOUDINARY_URL);
         username: username.toLowerCase()
     });
 
-    // 7. Verify creation and remove sensitive info
     const createdUser = await User.findById(user._id).select("-password -refreshToken");
 
     if (!createdUser) {
         throw new ApiError(500, "Something went wrong while registering the user");
     }
 
-    // 8. Send Response
     return res.status(201).json(
         new ApiResponse(200, createdUser, "User registered Successfully")
     );

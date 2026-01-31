@@ -13,13 +13,13 @@ import {
 const getAllVideos = asyncHandler(async (req, res) => {
     const {page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
     
-    const pageNum = Math.max(parseInt(req.query.page) || 1, 1);
-    const limitNum = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 100);
+    const pageNum = Math.max(parseInt(page) || 1, 1);
+    const limitNum = Math.min(Math.max(parseInt(limit) || 10, 1), 100);
     
     const sortField = sortBy || "createdAt";
     const sortOrder = sortType === "asc" ? 1 : -1;
     
-    const skip = (page - 1) * limit;
+    const skip = (pageNum - 1) * limitNum;
     
     const matchConditions = { isPublished: true };
     
@@ -30,65 +30,28 @@ const getAllVideos = asyncHandler(async (req, res) => {
         matchConditions.owner = new mongoose.Types.ObjectId(userId);
     }
 
-    const user = await User.aggregate([
-        {
-            $match : {
-                _id: new mongoose.Types.ObjectId(userId)
-            },
-        },
-        {
-            $lookup: {
-                from:"videos",
-                localField:"_id",
-                foreignField:"owner",  // ✅ FIXED: Should be "owner", not "videos"
-                as:"videos"
-            }
-        },
-        {
-            $unwind: "$videos"
-        },
-        {
-            $match: {
-                "videos.isPublished": true,  // ✅ FIXED: Added this
-                ...(query && {"videos.title":{$regex: query, $options:"i"}}),  // ✅ FIXED: Added $
-            }
-        },
-        {
-            $sort:{
-                [`videos.${sortBy || "createdAt"}`]: sortType === "asc" ? 1 : -1  // ✅ FIXED: Syntax
-            }
-        },
-        {
-            $skip: skip 
-        },
-        {
-            $limit: limitNum 
-        },
-        {
-            $group:{
-                _id: "$_id",
-                videos: { $push: "$videos" }
-            }
-        },
-    ])
-
-    if(!user.length){
-        throw new ApiError(404, "No videos found for the specified user");
+    if (query) {
+        matchConditions.title = { $regex: query, $options: "i" };
     }
 
-    const videos = user[0].videos;
+    const videos = await Video.find(matchConditions)
+        .sort({ [sortField]: sortOrder })
+        .skip(skip)
+        .limit(limitNum)
+        .populate("owner", "username email avatar");
+
     const totalVideos = await Video.countDocuments(matchConditions);
     
     return res.status(200).json(
         new ApiResponse(200, {
             videos,
             pagination: {
-                currentPage: page,
-                pageSize: limit,
+                currentPage: pageNum,
+                pageSize: limitNum,
                 totalVideos,
-                totalPages: Math.ceil(totalVideos / limit),
-                hasNextPage: page * limit < totalVideos,
-                hasPreviousPage: page > 1
+                totalPages: Math.ceil(totalVideos / limitNum),
+                hasNextPage: pageNum * limitNum < totalVideos,
+                hasPreviousPage: pageNum > 1
             }
         }, "Videos fetched successfully")
     );
@@ -97,15 +60,16 @@ const getAllVideos = asyncHandler(async (req, res) => {
 const publishVideo = asyncHandler(async (req, res) => {
     const { title, description} = req.body
 
-    if(!title || title.trim().length === 0){  // ✅ FIXED: Check if exists first
+    if(!title || title.trim().length === 0){
         throw new ApiError(400, "Title is required and cannot be empty")
     }
     if(!description || description.trim().length === 0){
         throw new ApiError(400, "Description is required and cannot be empty")
     }
 
+    // ✅ FIXED: Match route field names
     const videoLocalPath = req.files?.videoFile?.[0]?.path
-    const thumbnailLocalPath = req.files?.thumbnailFile?.[0]?.path
+    const thumbnailLocalPath = req.files?.thumbnail?.[0]?.path
 
     if(!videoLocalPath){
         throw new ApiError(400, "Video file is required")
@@ -121,11 +85,12 @@ const publishVideo = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Video upload failed")
     }
 
+    // ✅ FIXED: Use consistent field names
     const newVideo = await Video.create({
         title,
         description,
         videoFile: videoUpload.url,
-        thumbnailFile: thumbnailUpload.url,
+        thumbnail: thumbnailUpload.url,  // ✅ Changed from thumbnailFile
         duration: videoUpload.duration,
         owner: req.user._id,
         isPublished: true,
@@ -215,7 +180,8 @@ const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     const {title, description} = req.body
 
-    if (!title && !description && !req.files?.thumbnailFile) {
+    // ✅ FIXED: Match route field name
+    if (!title && !description && !req.files?.thumbnail) {
         throw new ApiError(400, "At least one field is required to update")
     }
 
@@ -234,12 +200,14 @@ const updateVideo = asyncHandler(async (req, res) => {
         throw new ApiError(403, "You are not authorized to update this video")
     }
 
-    const thumbnailLocalPath = req.files?.thumbnailFile?.[0]?.path
+    // ✅ FIXED: Match route field name
+    const thumbnailLocalPath = req.files?.thumbnail?.[0]?.path
     let thumbnailUpload;
     
     if(thumbnailLocalPath){
-        if (video.thumbnailFile) {  // ✅ FIXED
-            const oldPublicId = extractPublicId(video.thumbnailFile)  // ✅ FIXED
+        // ✅ FIXED: Use consistent field name
+        if (video.thumbnail) {
+            const oldPublicId = extractPublicId(video.thumbnail)
             await deleteFromCloudinary(oldPublicId, "image")
         }
 
@@ -251,7 +219,7 @@ const updateVideo = asyncHandler(async (req, res) => {
 
     video.title = title || video.title
     video.description = description || video.description
-    video.thumbnailFile = thumbnailUpload?.url || video.thumbnailFile
+    video.thumbnail = thumbnailUpload?.url || video.thumbnail  // ✅ FIXED
 
     await video.save()
 
@@ -278,7 +246,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
     }
 
     const videoPublicId = extractPublicId(video.videoFile)
-    const thumbnailPublicId = extractPublicId(video.thumbnailFile)  // ✅ FIXED
+    const thumbnailPublicId = extractPublicId(video.thumbnail)  // ✅ FIXED
     
     await deleteFromCloudinary(videoPublicId, "video")
     await deleteFromCloudinary(thumbnailPublicId, "image")
@@ -307,7 +275,6 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
         throw new ApiError(403, "You are not authorized to update this video")
     }
 
-    // ✅ FIXED: Correct toggle logic
     video.isPublished = !video.isPublished
     await video.save()
 
@@ -322,5 +289,5 @@ export {
     getVideoById, 
     updateVideo, 
     deleteVideo, 
-    togglePublishStatus  // ✅ ADDED!
+    togglePublishStatus
 }
