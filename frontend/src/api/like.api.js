@@ -17,3 +17,4 @@ export const likeAPI = {
     return await api.get('/likes/videos');
   },
 };
+

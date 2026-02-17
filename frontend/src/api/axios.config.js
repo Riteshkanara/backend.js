@@ -6,7 +6,7 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Add token to requests
+// Add Token to requests
 api.interceptors.request.use(
   (config) => {
      console.log('Making request to:', config.url);
@@ -22,7 +22,7 @@ api.interceptors.request.use(
   }
 );
 
-// Handle response errors
+// Handle Response errors
 api.interceptors.response.use(
   (response) => response.data,
   

@@ -12,6 +12,7 @@ export default function Register() {
     fullName: '',
     password: '',
   });
+  
   const [avatar, setAvatar] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -135,3 +136,15 @@ export default function Register() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+

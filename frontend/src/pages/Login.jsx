@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../api/auth.api';
-import useAuthStore from '../store/auth.store';
+import useAuthStore  from '../store/auth.store';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import toast from 'react-hot-toast';
@@ -22,6 +22,7 @@ export default function Login() {
     });
   };
 
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);

@@ -29,6 +29,8 @@ export default function Channel() {
     try {
       // In a real app, you'd have a getUserByUsername API
       // For now, we'll load videos and get user from first video
+      
+      //q11111
       const videosResponse = await videoAPI.getAllVideos({ 
         owner: username 
       });

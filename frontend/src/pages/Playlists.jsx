@@ -140,5 +140,5 @@ export default function Playlists() {
         </div>
       )}
     </div>
-  );
+  )
 }

@@ -29,7 +29,7 @@ router.route("/upload").post(
 );
 
 // Get all videos (with pagination, search, filters)
-router.route("/allvideos").get(getAllVideos);
+router.route("/").get(getAllVideos);
 
 // Get specific video by ID
 router.route("/:videoId").get(verifyJWT, getVideoById);

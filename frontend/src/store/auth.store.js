@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-const useAuthStore = create((set) => ({
+const  useAuthStore = create((set) => ({
   user: null,
   isAuthenticated: false,
 
@@ -18,5 +18,6 @@ const useAuthStore = create((set) => ({
     set({ user: userData, isAuthenticated: true });
   },
 }));
+
 
 export default useAuthStore;

@@ -11,7 +11,7 @@ import Home from './pages/Home';
 import Upload from './pages/Upload';
 import LikedVideos from './pages/LikedVideos';
 import VideoWatch from './pages/VideoWatch';
-import Tweets from './pages/tweets';
+import Tweets from './pages/Tweets';
 import Channel from './pages/Channel';
 import Playlists from './pages/Playlists';
 import Subscriptions from './pages/Subscriptions';
@@ -30,9 +30,8 @@ function ProtectedRoute({ children }) {
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { isAuthenticated, setUser } = useAuthStore();
+  const { setUser } = useAuthStore();
 
-  // Check if user is already logged in on mount
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('accessToken');
@@ -76,69 +75,54 @@ function App() {
                   />
                   <main className="flex-1 lg:ml-64 p-6">
                     <Routes>
+                      {/* Public Routes */}
                       <Route path="/" element={<Home />} />
+                      <Route path="/watch/:videoId" element={<VideoWatch />} />
+                      <Route path="/tweets" element={<Tweets />} />
+                      <Route path="/channel/:username" element={<Channel />} />
                       
                       {/* Protected Routes */}
                       <Route 
                         path="/upload" 
                         element={
                           <ProtectedRoute>
-                            <div>Upload Page (Coming Soon)</div>
+                            <Upload />
                           </ProtectedRoute>
                         } 
                       />
-                      <Route path="/tweets" element={<Tweets />} />
-<Route path="/channel/:username" element={<Channel />} />
                       <Route 
                         path="/liked-videos" 
                         element={
                           <ProtectedRoute>
-                            <div>Liked Videos (Coming Soon)</div>
+                            <LikedVideos />
                           </ProtectedRoute>
                         } 
                       />
                       <Route 
-  path="/playlists" 
-  element={
-    <ProtectedRoute>
-      <Playlists />
-    </ProtectedRoute>
-  } 
-/>
-
-<Route 
-  path="/subscriptions" 
-  element={
-    <ProtectedRoute>
-      <Subscriptions />
-    </ProtectedRoute>
-  } 
-/>
+                        path="/playlists" 
+                        element={
+                          <ProtectedRoute>
+                            <Playlists />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/subscriptions" 
+                        element={
+                          <ProtectedRoute>
+                            <Subscriptions />
+                          </ProtectedRoute>
+                        } 
+                      />
                       
                       {/* Fallback */}
-                      <Route path="*" element={<div>404 - Page Not Found</div>} />
-                      // Inside your Routes, add:
-                      <Route path="/watch/:videoId" element={<VideoWatch />} />
-                      <Route 
-  path="/liked-videos" 
-  element={
-    <ProtectedRoute>
-      <LikedVideos />
-    </ProtectedRoute>
-  } 
-/>
-<Route path="/upload" element={
-          <ProtectedRoute>
-           <Upload />
-          </ProtectedRoute> } />
+                      <Route path="*" element={<div className="text-center py-12">404 - Page Not Found</div>} />
                     </Routes>
                   </main>
                 </div>
               </>
             }
           />
-                
-         
         </Routes>
 
         <Toaster 
@@ -156,3 +140,18 @@ function App() {
 }
 
 export default App;
+// ```
+
+// **Changes made:**
+// - ✅ Removed duplicate routes
+// - ✅ Fixed `import Tweets from './pages/Tweets'` (was lowercase)
+// - ✅ Organized routes cleanly
+// - ✅ Removed `isAuthenticated` from destructuring (unused)
+
+// ---
+
+// ## 📄 **Now Share index.html**
+
+// The polygon background is likely in `index.html`. Please share:
+// ```
+// index.html (in the root of frontend folder)

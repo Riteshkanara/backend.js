@@ -64,114 +64,97 @@ export default function VideoWatch() {
     navigator.clipboard.writeText(url);
     toast.success('Link copied to clipboard!');
   };
-
-  if (loading) {
-    return <Loader fullScreen />;
+if (loading) {
+    return <Loader />;
   }
 
   if (!video) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <p className="text-xl text-gray-400">Video not found</p>
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <div className="text-2xl font-bold mb-2">Video not found</div>
+          <p className="text-gray-400">This video may have been removed or doesn't exist.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto p-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Video Player */}
-          <VideoPlayer url={video.videoFile} />
+          {/* Video Player - FIXED */}
+          <div className="bg-black rounded-xl overflow-hidden border-2 border-gray-800 shadow-lg">
+            <VideoPlayer 
+              src={video.videoFile} 
+              thumbnail={video.thumbnail} 
+            />
+          </div>
 
           {/* Video Title */}
-          <h1 className="text-2xl font-bold">{video.title}</h1>
+          <h1 className="text-2xl font-bold leading-tight">{video.title}</h1>
 
-          {/* Channel Info & Actions */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            {/* Channel Info */}
+          {/* Channel Info & Actions - FIXED */}
+          <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-dark-secondary rounded-xl border border-gray-800">
             <div className="flex items-center gap-4">
-              <Link to={`/channel/${video.owner?.username}`}>
-                <Avatar 
-                  src={video.owner?.avatar} 
-                  alt={video.owner?.username}
-                  size="lg"
-                />
+              <Link to={`/channel/${video.owner.username}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                <Avatar src={video.owner.avatar} alt={video.owner.fullName} size="lg" />
+                <div>
+                  <p className="font-medium text-lg">{video.owner.fullName}</p>
+                  <p className="text-sm text-gray-400">
+                    {formatViews(video.owner.subscribersCount || 0)} subscribers
+                  </p>
+                </div>
               </Link>
-              
-              <div className="flex-1">
-                <Link 
-                  to={`/channel/${video.owner?.username}`}
-                  className="font-semibold text-lg hover:text-primary"
-                >
-                  {video.owner?.fullName}
-                </Link>
-                <p className="text-sm text-gray-400">
-                  {video.owner?.subscribersCount || 0} subscribers
-                </p>
-              </div>
 
-              <SubscribeButton 
-                channelId={video.owner?._id} 
-                channelUsername={video.owner?.username}
-              />
+              <button className="px-6 py-2 bg-white text-black font-medium rounded-full hover:bg-gray-200 transition-colors">
+                Subscribe
+              </button>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex items-center gap-2">
-              <Button
+              <button
                 onClick={handleLike}
-                loading={likeLoading}
-                variant={liked ? 'primary' : 'secondary'}
-                className="flex items-center gap-2"
+                className={`
+                  flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all
+                  ${isLiked 
+                    ? 'bg-red-600 hover:bg-red-700' 
+                    : 'bg-gray-700 hover:bg-gray-600'}
+                `}
               >
-                <ThumbsUp size={20} />
-                <span>{video.likesCount || 0}</span>
-              </Button>
-
-              <Button
-                onClick={handleShare}
-                variant="secondary"
-                className="flex items-center gap-2"
-              >
-                <Share2 size={20} />
-                <span>Share</span>
-              </Button>
+                <svg className="w-5 h-5" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <span>{formatViews(likesCount)}</span>
+              </button>
             </div>
           </div>
 
-          {/* Video Description */}
-          <div className="bg-dark-2 rounded-lg p-4">
-            <div className="flex items-center gap-4 text-sm mb-3">
-              <span className="font-semibold">
-                {formatViews(video.views || 0)} views
-              </span>
-              <span className="text-gray-400">
-                {formatDate(video.createdAt)}
-              </span>
+          {/* Description - FIXED */}
+          <div className="bg-dark-secondary p-4 rounded-xl border border-gray-800">
+            <div className="flex gap-2 text-sm text-gray-400 mb-3">
+              <span className="font-medium">{formatViews(video.views)} views</span>
+              <span>•</span>
+              <span>{formatDate(video.createdAt)}</span>
             </div>
-            <p className="text-gray-300 whitespace-pre-wrap">
+            <p className="whitespace-pre-wrap text-gray-300 leading-relaxed">
               {video.description}
             </p>
           </div>
 
           {/* Comments Section */}
-          <div className="mt-8">
-            <h2 className="text-xl font-bold mb-4">Comments</h2>
-            <div className="text-gray-400 text-center py-8">
-            <div className="mt-8">
-                <CommentList videoId={videoId} />
-            </div>
-            </div>
-          </div>
+          <CommentList videoId={videoId} />
         </div>
 
         {/* Sidebar - Related Videos */}
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg">Related Videos</h3>
-          <div className="text-gray-400 text-center py-8">
-            Related videos coming soon...
+        <div className="lg:col-span-1">
+          <div className="sticky top-20">
+            <h2 className="font-bold text-lg mb-4">Related Videos</h2>
+            <div className="space-y-3">
+              {/* Related videos list will go here */}
+              <p className="text-gray-400 text-sm">Coming soon...</p>
+            </div>
           </div>
         </div>
       </div>
