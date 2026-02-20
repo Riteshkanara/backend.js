@@ -21,12 +21,14 @@
 
 [✨ Features](#-features) • [🚀 Quick Start](#-quick-start) • [🛠️ Tech Stack](#️-tech-stack) • [📸 Screenshots](#-screenshots) • [🎯 Roadmap](#-roadmap)
 
+FRONTEND -- VERCEL 🚀
+BACKEND -- RAILWAY 🚂
 
-### **Access the App**
 
-Open your browser and navigate to:
+### **Access the App 🌟**
+
 - **Frontend:** https://video-tube-in-final.vercel.app/
-- FRONTEND IN Vercel
+
 - **Backend API:** https://videotube-production.up.railway.app/api/v1
 - BACKEND IN Railway
 
