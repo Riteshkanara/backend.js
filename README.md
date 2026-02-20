@@ -162,8 +162,10 @@ VITE_API_URL=http://localhost:8000/api/v1
 ### **Access the App**
 
 Open your browser and navigate to:
-- **Frontend:** http://localhost:5173
-- **Backend API:** http://localhost:8000/api/v1
+- **Frontend:** https://video-tube-in-final.vercel.app/
+- FRONTEND IN Vercel
+- **Backend API:** https://videotube-production.up.railway.app/api/v1
+- BACKEND IN Railway
 
 <br />
 
