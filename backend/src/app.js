@@ -9,13 +9,31 @@ const app = express();
 //     origin: "http://localhost:5173" ,
 //     credentials: true,
 // }))
-app.use(cors({
-    origin: function (origin, callback) {
-        console.log("Request coming from:", origin);
-        callback(null, true); // Allow everything temporarily for debugging
-    },
-    credentials: true,
-}))
+const allowedOrigins = [
+    process.env.CORS_ORIGIN,
+    "https://video-tube-in-final.vercel.app" // Your specific Vercel URL
+];
+const app = express();
+
+// 1. HEADERS/CORS FIRST
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    const allowedOrigins = [process.env.CORS_ORIGIN, "https://video-tube-in-final.vercel.app"];
+    
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization, Accept');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+// Add this right AFTER the cors middleware to handle "Preflight" requests explicitly
+
 app.use(express.json({limit: '16kb'}));
 app.use(express.urlencoded({ extended: true , limit: '16kb'}));
 app.use(express.static('public'));
