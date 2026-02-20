@@ -28,7 +28,7 @@ app.use(cors({
 }));
 
 // Handle preflight for all routes
-app.options("*", cors());
+app.options(/(.*)/, cors());
 
 app.use(express.json({ limit: '16kb' }));
 app.use(express.urlencoded({ extended: true, limit: '16kb' }));
